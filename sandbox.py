@@ -1,12 +1,30 @@
 import os
 import random
-x = int(os.urandom(1024/8).encode('hex'), 16)
-print x
+
+"""
+try:
+    print 'Hi!'
+    a = random.randint(0, x - 2)
+    print a
+    print 'Hi again!'
+    print x - a
+    print 'Hi thrice!'
+except Exception, ex:
+    print ex
+    
+should_loop = not fermat_primal_test(x, 10)
+print 'Generated number x is prime:', should_loop
+if should_loop:
+"""
 
 
 def fermat_primal_test(prime, num_of_tries):
-    for i in num_of_tries:
-        pass
+    for _ in xrange(num_of_tries):
+        # Get base of power
+        a = random.randint(0, prime - 2)
+        if not fermat_theorem(a, prime):
+            return False  # not prime (certain)
+    return True  # finished running, probably prime by the test
 
 
 def fermat_theorem(a, n):
@@ -16,15 +34,28 @@ def fermat_theorem(a, n):
     :param n: number to check
     :return: return true if theorem holds true, false otherwise
     """
-    print 'Starting calc...'
+    # print 'Starting calc...'
     num = pow(a, n - 1, n)
-    print num
+    # print num
     if num == 1:
         return True
     return False
 
 
-print fermat_theorem(6, 17)
-print 'done with 1'
-print fermat_theorem(2, x)
-print 'finished with 2'
+def main():
+    number_of_bits = 4096
+    x = int(os.urandom(number_of_bits/8).encode('hex'), 16)
+    if x % 2 == 0:
+        x += 1
+        print 'Added one to make odd...'
+    print 'Initial x:\n', x
+
+    while not fermat_primal_test(x, 100):
+        x += 2
+
+    print 'Existed loop, got number:\n', x
+    print 'Generated number x is prime (last check):', fermat_primal_test(x, 200)
+
+
+if __name__ == '__main__':
+    main()
