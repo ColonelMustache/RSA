@@ -16,9 +16,16 @@ def fermat_theorem(a, n):
     :param n: number to check
     :return: return true if theorem holds true, false otherwise
     """
-    if (a**(n-1)) % n == 1:
+    print 'Starting calc...'
+    num = fast_power(a, n - 1, n)
+    print num
+    if num == 1:
         return True
     return False
+
+
+def fast_power(base, exp, mod):
+    return pow(base, exp / 2, mod)
 
 
 print fermat_theorem(6, 17)
