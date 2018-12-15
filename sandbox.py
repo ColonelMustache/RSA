@@ -18,7 +18,7 @@ if should_loop:
 """
 
 
-def fermat_primal_test(prime, num_of_tries):
+def fermat_primality_test(prime, num_of_tries):
     for _ in xrange(num_of_tries):
         # Get base of power
         a = random.randint(0, prime - 2)
@@ -50,11 +50,11 @@ def main():
         print 'Added one to make odd...'
     print 'Initial x:\n', x
 
-    while not fermat_primal_test(x, 100):
+    while not fermat_primality_test(x, 100):
         x += 2
 
     print 'Existed loop, got number:\n', x
-    print 'Generated number x is prime (last check):', fermat_primal_test(x, 200)
+    print 'Generated number x is prime (last check):', fermat_primality_test(x, 200)
 
 
 if __name__ == '__main__':
