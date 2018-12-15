@@ -43,6 +43,7 @@ def fermat_theorem(a, n):
 
 
 def main():
+    print range(1, 34)
     number_of_bits = 4096
     x = int(os.urandom(number_of_bits/8).encode('hex'), 16)
     if x % 2 == 0:

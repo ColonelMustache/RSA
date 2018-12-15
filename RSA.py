@@ -126,3 +126,33 @@ def get_miller_rabin_components(num):
         return to_ret[0]+1, to_ret[1]
     # if got here then we have reached the "odd root" of the number
     return 0, num
+
+
+def gcd(a, b):
+    """
+    Return the Greatest Common Denominator of the numbers a and b
+    :param a: Number a
+    :param b: Number b
+    :return: Return the GCD
+    """
+    if b == 0:
+        return a
+    else:
+        return gcd(b, a % b)
+
+
+def euler_totient_function(q, p):
+    """
+    Does the Euler totient function
+    :param q: Factor 1
+    :param p: Factor 2
+    :return: The number of coprimes to the number q*p
+    """
+    return (p - 1) * (q - 1)
+
+
+def create_keys(key_size):
+    prime1 = generate_prime(key_size/2)
+    prime2 = generate_prime(key_size/2)
+    n = prime1 * prime2
+
