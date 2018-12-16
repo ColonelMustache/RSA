@@ -152,7 +152,26 @@ def euler_totient_function(q, p):
 
 
 def create_keys(key_size):
-    prime1 = generate_prime(key_size/2)
-    prime2 = generate_prime(key_size/2)
-    n = prime1 * prime2
+    p = generate_prime(key_size/2)
+    q = generate_prime(key_size/2)
+    n = q * p
+    phi_n = euler_totient_function(q, p)
+    e = 65537
+    if not (e < phi_n and gcd(e, phi_n) == 1):
+        e = 257
+        if not (e < phi_n and gcd(e, phi_n) == 1):
+            print 'Failed to pick a suitable public exponent, needs implementation'
+            return ''
+    t = random.randrange(5, 10)
+    d = 1/e + t * phi_n
+    public_key = (e, n)
+    private_key = (d, n)
+    location = 'c:\keys'
+    format_pem(public_key, location)
+    format_pem(private_key, location)
+
+
+def format_pem(key, location):
+    pass  # will save keys as PEM format in *file_name*.key
+
 
