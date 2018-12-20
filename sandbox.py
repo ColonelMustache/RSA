@@ -43,8 +43,12 @@ def fermat_theorem(a, n):
 
 
 def main():
+    x = hex(20)
+    print x
+    print hex(int(x, 16) + 16)
     print range(1, 34)
     number_of_bits = 4096
+    """
     x = int(os.urandom(number_of_bits/8).encode('hex'), 16)
     if x % 2 == 0:
         x += 1
@@ -56,6 +60,7 @@ def main():
 
     print 'Existed loop, got number:\n', x
     print 'Generated number x is prime (last check):', fermat_primality_test(x, 200)
+    """
 
 
 if __name__ == '__main__':
