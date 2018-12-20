@@ -42,7 +42,36 @@ def fermat_theorem(a, n):
     return False
 
 
+def pascal_triangle(n):
+    """
+    Calculates the values of the nth row of Pascal's triangle using the identity: C(n,k+1) = C(n,k) * (n-k) / (k+1)
+    :param n: Number of the row in Pascal's trianlge to be calculated
+    :return:
+    """
+    line = [1]
+    k = 0
+    while k < n:
+        line.append(line[k] * (n-k) / (k+1))
+        k += 1
+    # for k in range(n):
+    #    line.append(line[k] * (n-k) / (k+1))
+    return line
+
+
+def aks_test(n):
+    coefficients = pascal_triangle(n)
+    coefficients = coefficients[1:len(coefficients)-1]  # remove the ones on the sides
+    for c in coefficients:
+        if c % n != 0:
+            return False
+    return True
+
+
 def main():
+    msg = 'Shalom'
+    msg_uni = msg.encode('utf-8')
+    print msg
+    print msg_uni
     x = hex(20)
     print x
     print hex(int(x, 16) + 16)

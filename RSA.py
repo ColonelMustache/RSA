@@ -6,6 +6,7 @@
 import random
 import os
 import textwrap
+import base64
 
 
 def generate_prime(size=1024, num_of_tries=100, max_tries=10):
@@ -31,7 +32,7 @@ def generate_prime(size=1024, num_of_tries=100, max_tries=10):
     count = 0
     for _ in xrange(max_tries):
         x = get_prime(x)
-        print 'Final check...'
+        print 'Final primality check...'
         if fermat_primality_test(x, num_of_tries) and miller_rabin_test(x, num_of_tries):
             # Got sufficient probability of primality
             break
@@ -43,7 +44,7 @@ def generate_prime(size=1024, num_of_tries=100, max_tries=10):
             return False  # This means the for loop ran the maximal amount of times so we check if the last run got a
             # prime by chance and it should be tested, if it wasn't prime the function is done and didn't get a prime
             # so it returns 'False'.
-    print 'Success!'
+    print 'Got Keys!'
     return x
 
 
@@ -69,9 +70,7 @@ def fermat_theorem(a, n):
     :param n: number to check
     :return: return true if theorem holds true, false otherwise
     """
-    # print 'Starting calc...'
     num = pow(a, n - 1, n)
-    # print num
     if num == 1:
         return True
     return False
@@ -152,40 +151,131 @@ def euler_totient_function(q, p):
     return (p - 1) * (q - 1)
 
 
-def create_keys(key_size, location):
+def generate_keys(location, key_size=1024):
     p = generate_prime(key_size/2)
     q = generate_prime(key_size/2)
     n = q * p
     phi_n = euler_totient_function(q, p)
     e = 65537
-    if not (e < phi_n and gcd(e, phi_n) == 1):
+    if not (e < phi_n and gcd(e, phi_n) == 1 and gcd(e, n) == 1):
         e = 257
         if not (e < phi_n and gcd(e, phi_n) == 1):
             print 'Failed to pick a suitable public exponent, needs implementation'
             return ''
-    t = random.randrange(5, 10)
-    d = 1/e + t * phi_n
+    d = multiplicative_inverse(e, phi_n)
     public_key = (e, n)
     private_key = (d, n)
     # location = 'c:\keys'  # temp
-    format_pem(public_key, location, True)
-    format_pem(private_key, location, False)
+    return public_key, private_key
+    # format_pem(public_key, location, True)
+    # format_pem(private_key, location, False)
+
+
+def multiplicative_inverse(e, phi):
+    t, newt, r, newr = 0, 1, phi, e
+    while newr != 0:
+        quotient = r / newr
+        t, newt = newt, t - quotient * newt
+        r, newr = newr, r - quotient * newr
+    if r > 1:
+        return False
+    if t < 0:
+        t += phi
+    return t
 
 
 def format_pem(key, location, is_public):
-    # codes
-    SEQUENCE = "0x30"
-    EXTRA_LEN_BYTES = "0x80"
-    INTEGER = "0x02"
-    exponent = textwrap.wrap(key[0].strip('0x').strip('L'), 2)
-    exponent_part = INTEGER + hex(int(EXTRA_LEN_BYTES, 16) + len(exponent)) * (len(exponent) > 127) + ''.join(exponent)
-    key_file_header = SEQUENCE + hex(int(EXTRA_LEN_BYTES, 16) + )
+    # codes:
+    sequence = "30"
+    integer = "02"
+    n = make_correct(clean_hex(key[0]))
+    exponent = make_correct(clean_hex(key[1]))
+    n_part = integer + length_part(n) + n
+    exponent_part = integer + length_part(exponent) + exponent
+    to_save = sequence + length_part(n_part + exponent_part) + n_part + exponent_part
+    to_save = base64.b64encode(to_save)
+    if not os.path.exists(location):
+        os.mkdir(location)
     if is_public:
-        pass
-    pass  # will save keys as PEM format in *file_name*.key
+        save_public_key(to_save, location)
+    else:
+        save_private_key(to_save, location)
 
 
-def if_needs_extra_bytes(len_int):
-    if len_int > 127:
+def needs_more_bytes(num_in_hex):
+    length = len(textwrap.wrap(num_in_hex, 2))
+    if length > 127:
         return True
     return False
+
+
+def clean_hex(num):
+    return hex(num).strip('0x').strip('L')
+
+
+def length_part(hex_num):
+    extra_bytes = '80'
+    length = len(textwrap.wrap(hex_num, 2))
+    if needs_more_bytes(hex_num):
+        extra_bytes = clean_hex(int(extra_bytes, 16) + length/255 + 1 * (length % 255 != 0)) + clean_hex(length)
+    else:
+        extra_bytes = clean_hex(length)
+    return extra_bytes
+
+
+def make_correct(hex_num):
+    if len(hex_num) % 2 != 0:
+        hex_num = '0' + hex_num
+        return hex_num
+    hex_num = '00' + hex_num
+    return hex_num
+
+
+def save_public_key(data, location):
+    separated_pem = '\r\n'.join(textwrap.wrap(data, 64))
+    with open(location + 'public_key.key', 'wb+') as pubkey:
+        pubkey.write('-----BEGIN PUBLIC KEY-----\r\n' + separated_pem + '\r\n-----END PUBLIC KEY-----')
+
+
+def save_private_key(data, location):
+    separated_pem = '\r\n'.join(textwrap.wrap(data, 64))
+    with open(location + 'private_key.key', 'wb+') as pkey:
+        pkey.write('-----BEGIN PRIVATE KEY-----\r\n' + separated_pem + '\r\n-----END PRIVATE KEY-----')
+
+
+def encrypt(message, key):
+    message = get_numbers_from_message(message)
+    exponent = key[0]
+    modulus = key[1]
+    message = pow(message, exponent, modulus)
+    return base64.b64encode(hex(message))
+
+
+def decrypt(message, key):
+    message = int(base64.b64decode(message).strip('0x').strip('L'), 16)
+    exponent = key[0]
+    modulus = key[1]
+    message = pow(message, exponent, modulus)
+    message = get_message_from_numbers(message)
+    return message
+
+
+def get_numbers_from_message(message):
+    to_ret = ''
+    num = 1000
+    for char in message:
+        to_ret += str(num + ord(char))[1:]
+    to_ret = int(to_ret)
+    return to_ret
+
+
+def get_message_from_numbers(numbers):
+    numbers = str(numbers)
+    length = len(numbers)
+    if length % 3 != 0:
+        numbers = ('0' * (3 - (length % 3))) + numbers
+    numbers = textwrap.wrap(numbers, 3)
+    message = ''
+    for num in numbers:
+        message += chr(int(num))
+    return message

@@ -2,12 +2,14 @@ import RSA
 
 
 def main():
-    prime = RSA.generate_prime(2048)
-    print prime
-    x = hex(prime).strip('0x').strip('L')
-    print x
-    print type(hex(prime))
-    print len(x)
+    public, private = RSA.generate_keys('d:\keys\\', 1024)
+    message = 'Shalom'  # raw_input('Message:\n')
+    print 'Encrypting'
+    message = RSA.encrypt(message, public)
+    print message
+    print 'Decrypting'
+    message = RSA.decrypt(message, private)
+    print message
 
 
 if __name__ == '__main__':
