@@ -167,11 +167,18 @@ def create_keys(key_size):
     public_key = (e, n)
     private_key = (d, n)
     location = 'c:\keys'
-    format_pem(public_key, location)
-    format_pem(private_key, location)
+    format_pem(public_key, location, True)
+    format_pem(private_key, location, False)
 
 
-def format_pem(key, location):
+def format_pem(key, location, is_public):
+    # codes
+    SEQUENCE = 0x30
+    EXTRA_LEN_BYTES = 0x81
+    INTEGER = 0x02
+
+    if is_public:
+        pass
     pass  # will save keys as PEM format in *file_name*.key
 
 
