@@ -151,7 +151,7 @@ def euler_totient_function(q, p):
     return (p - 1) * (q - 1)
 
 
-def generate_keys(location, key_size=1024):
+def generate_keys(location='', key_size=2048):
     p = generate_prime(key_size/2)
     q = generate_prime(key_size/2)
     n = q * p
@@ -166,6 +166,8 @@ def generate_keys(location, key_size=1024):
     public_key = (e, n)
     private_key = (d, n)
     # location = 'c:\keys'  # temp
+    format_pem(public_key, location, True)
+    format_pem(private_key, location, False)
     return public_key, private_key
     # format_pem(public_key, location, True)
     # format_pem(private_key, location, False)

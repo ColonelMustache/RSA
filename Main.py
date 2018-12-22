@@ -1,9 +1,12 @@
 import RSA
 import socket
 
+IP = '0.0.0.0'
+PORT = 8192
+
 
 def main():
-    public, private = RSA.generate_keys('c:\keys\\', 1024)
+    public, private = RSA.generate_keys('keys\\')
     """
     message = 'Shalom'  # raw_input('Message:\n')
     print 'Encrypting'
@@ -13,12 +16,13 @@ def main():
     message = RSA.decrypt(message, private)
     print message
     """
-    print socket_stuff(public, private)
+    # print public, private
+    print socket_stuff(public, private, IP, PORT)
 
 
-def socket_stuff(public, private):
+def socket_stuff(public, private, ip, port):
     server_sock = socket.socket()
-    server_sock.bind(('0.0.0.0', 8192))
+    server_sock.bind((ip, port))
     server_sock.listen(5)
     print 'Running...'
     client_sock, client_address = server_sock.accept()

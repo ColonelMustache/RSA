@@ -68,6 +68,7 @@ def aks_test(n):
 
 
 def main():
+    print (os.path.dirname(__file__) + '/').replace('/', '\\')
     msg = 'Shalom'
     msg_uni = msg.encode('utf-8')
     print msg
