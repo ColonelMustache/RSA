@@ -19,6 +19,8 @@ def generate_prime(size=1024, num_of_tries=100, max_tries=10):
     :return: Either a probable prime (most cases) or a false if it couldn't generate a prime in the amount of tries
              tries specified
     """
+    print 'Started generation...'
+
     x = int(os.urandom(size/8).encode('hex'), 16)
     if x % 2 == 0:
         x += 1
@@ -152,6 +154,12 @@ def euler_totient_function(q, p):
 
 
 def generate_keys(location='', key_size=2048):
+    """
+    Generate RSA private and public key pairs
+    :param location: Where to save the keys in PEM format
+    :param key_size: Size of the key in bits
+    :return: public key, private key
+    """
     p = generate_prime(key_size/2)
     q = generate_prime(key_size/2)
     n = q * p
@@ -169,11 +177,15 @@ def generate_keys(location='', key_size=2048):
     format_pem(public_key, location, True)
     format_pem(private_key, location, False)
     return public_key, private_key
-    # format_pem(public_key, location, True)
-    # format_pem(private_key, location, False)
 
 
 def multiplicative_inverse(e, phi):
+    """
+    Return the multiplicative inverse of the public exponent e and the totient function of the modulus n
+    :param e: The public exponent
+    :param phi: Euler's totient function for the modulus n
+    :return: The multiplicative inverse (i.e d, the private modulus)
+    """
     t, newt, r, newr = 0, 1, phi, e
     while newr != 0:
         quotient = r / newr
@@ -187,11 +199,18 @@ def multiplicative_inverse(e, phi):
 
 
 def format_pem(key, location, is_public):
+    """
+    Format a given key into PEM
+    :param key: The key to be formatted
+    :param location: Where to save the key file
+    :param is_public: Is this key the public or the private key
+    :return: True for success False for failure
+    """
     # codes:
     sequence = "30"
     integer = "02"
-    n = make_correct(clean_hex(key[0]))
-    exponent = make_correct(clean_hex(key[1]))
+    n = add_zeroes(clean_hex(key[0]))
+    exponent = add_zeroes(clean_hex(key[1]))
     n_part = integer + length_part(n) + n
     exponent_part = integer + length_part(exponent) + exponent
     to_save = sequence + length_part(n_part + exponent_part) + n_part + exponent_part
@@ -205,6 +224,11 @@ def format_pem(key, location, is_public):
 
 
 def needs_more_bytes(num_in_hex):
+    """
+    A check of length for the PEM format, checks if there is a need for extra bytes to denote the length of a part
+    :param num_in_hex: The number to be saved
+    :return: True if there is a need for extra bytes and False if there isn't
+    """
     length = len(textwrap.wrap(num_in_hex, 2))
     if length > 127:
         return True
@@ -212,10 +236,20 @@ def needs_more_bytes(num_in_hex):
 
 
 def clean_hex(num):
+    """
+    Strips hex markings from a hex string
+    :param num: Number as hex
+    :return: Number in hex without hex markings (i.e '0x' and the long type marker, 'L' at the end)
+    """
     return hex(num).strip('0x').strip('L')
 
 
 def length_part(hex_num):
+    """
+    Creates the bytes denoting the length of a part that follows in the PEM format
+    :param hex_num: The number to be in the part
+    :return: Bytes representing the length of the part that follows (including extra length bytes if needed)
+    """
     extra_bytes = '80'
     length = len(textwrap.wrap(hex_num, 2))
     if needs_more_bytes(hex_num):
@@ -225,7 +259,12 @@ def length_part(hex_num):
     return extra_bytes
 
 
-def make_correct(hex_num):
+def add_zeroes(hex_num):
+    """
+    Hex part must start with '00' for the PEM format, when turned into an int the zeroes are removed
+    :param hex_num: Number to be formatted in hex
+    :return: The number with '00' at the beginning
+    """
     if len(hex_num) % 2 != 0:
         hex_num = '0' + hex_num
         return hex_num
@@ -234,18 +273,36 @@ def make_correct(hex_num):
 
 
 def save_public_key(data, location):
+    """
+    Saves a public key into I/O
+    :param data: The key formatted in PEM
+    :param location: Where to save the .key file
+    :return: None
+    """
     separated_pem = '\r\n'.join(textwrap.wrap(data, 64))
     with open(location + 'public_key.key', 'wb+') as pubkey:
         pubkey.write('-----BEGIN PUBLIC KEY-----\r\n' + separated_pem + '\r\n-----END PUBLIC KEY-----')
 
 
 def save_private_key(data, location):
+    """
+    Saves a private key into I/O
+    :param data: The key formatted in PEM
+    :param location: Where to save the .key file
+    :return: None
+    """
     separated_pem = '\r\n'.join(textwrap.wrap(data, 64))
     with open(location + 'private_key.key', 'wb+') as pkey:
         pkey.write('-----BEGIN PRIVATE KEY-----\r\n' + separated_pem + '\r\n-----END PRIVATE KEY-----')
 
 
 def encrypt(message, key):
+    """
+    Run the encryption process of RSA
+    :param message: The message to be encrypted
+    :param key: The RSA key to encrypt with
+    :return: Base 64 of the encrypted message in hex
+    """
     message = get_numbers_from_message(message)
     exponent = key[0]
     modulus = key[1]
@@ -254,6 +311,12 @@ def encrypt(message, key):
 
 
 def decrypt(message, key):
+    """
+    Run the decryption process of RSa
+    :param message: The encrypted message to be decrypted
+    :param key: The key to decrypt with
+    :return: The message in integer form
+    """
     message = int(base64.b64decode(message).strip('0x').strip('L'), 16)
     exponent = key[0]
     modulus = key[1]
@@ -263,6 +326,11 @@ def decrypt(message, key):
 
 
 def get_numbers_from_message(message):
+    """
+    Turn a message to be encrypted to a number
+    :param message: The message to be encrypted
+    :return: The message in integer form
+    """
     to_ret = ''
     num = 1000
     for char in message:
@@ -271,13 +339,18 @@ def get_numbers_from_message(message):
     return to_ret
 
 
-def get_message_from_numbers(numbers):
-    numbers = str(numbers)
-    length = len(numbers)
+def get_message_from_numbers(number):
+    """
+    Turn a number that was derived from a message back into a message
+    :param number: The number to be converted back into a message
+    :return: The original message
+    """
+    number = str(number)
+    length = len(number)
     if length % 3 != 0:
-        numbers = ('0' * (3 - (length % 3))) + numbers
-    numbers = textwrap.wrap(numbers, 3)
+        number = ('0' * (3 - (length % 3))) + number
+    number = textwrap.wrap(number, 3)
     message = ''
-    for num in numbers:
+    for num in number:
         message += chr(int(num))
     return message

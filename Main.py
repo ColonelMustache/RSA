@@ -1,12 +1,19 @@
 import RSA
 import socket
+import time
+import datetime
 
 IP = '0.0.0.0'
 PORT = 8192
 
 
 def main():
-    public, private = RSA.generate_keys('keys\\')
+    start_time = time.time()
+    now = datetime.datetime.now()
+    current_time_hour = [str(now.hour), str(now.minute), str(now.second)]
+    print 'Started: [%s]' % ':'.join(current_time_hour)
+    big_prime = RSA.generate_prime(size=16384)
+    # public, private = RSA.generate_keys('keys\\')
     """
     message = 'Shalom'  # raw_input('Message:\n')
     print 'Encrypting'
@@ -16,8 +23,14 @@ def main():
     message = RSA.decrypt(message, private)
     print message
     """
+    print big_prime
+    with open('big_prime', 'wb+') as fh:
+        fh.write(str(big_prime))
     # print public, private
-    print socket_stuff(public, private, IP, PORT)
+    # print socket_stuff(public, private, IP, PORT)
+
+    elapsed_time = round(time.time() - start_time, 5)
+    print 'Done! Finished in [%ss]' % elapsed_time
 
 
 def socket_stuff(public, private, ip, port):

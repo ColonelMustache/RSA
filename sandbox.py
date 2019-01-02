@@ -1,5 +1,6 @@
 import os
 import random
+import time
 
 """
 try:
@@ -68,6 +69,9 @@ def aks_test(n):
 
 
 def main():
+    start_time = time.time()
+
+
     print (os.path.dirname(__file__) + '/').replace('/', '\\')
     msg = 'Shalom'
     msg_uni = msg.encode('utf-8')
@@ -91,6 +95,11 @@ def main():
     print 'Existed loop, got number:\n', x
     print 'Generated number x is prime (last check):', fermat_primality_test(x, 200)
     """
+    count = 1
+    for i in xrange(100000):
+        count += 1
+    elapsed_time = round(time.time() - start_time, 5)
+    print 'Done! Finished in [%ss]' % elapsed_time
 
 
 if __name__ == '__main__':
