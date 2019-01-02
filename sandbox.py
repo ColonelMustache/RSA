@@ -70,7 +70,8 @@ def aks_test(n):
 
 def main():
     start_time = time.time()
-
+    print os.urandom(128)
+    print hex(12666666666666666666666666666666666666666666)
 
     print (os.path.dirname(__file__) + '/').replace('/', '\\')
     msg = 'Shalom'

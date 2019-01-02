@@ -7,6 +7,7 @@ import random
 import os
 import textwrap
 import base64
+import re
 
 
 def generate_prime(size=1024, num_of_tries=100, max_tries=10):
@@ -303,9 +304,10 @@ def encrypt(message, key):
     :param key: The RSA key to encrypt with
     :return: Base 64 of the encrypted message in hex
     """
-    message = get_numbers_from_message(message)
     exponent = key[0]
     modulus = key[1]
+    message = add_padding(message, modulus)
+    print 'padded', message
     message = pow(message, exponent, modulus)
     return base64.b64encode(hex(message))
 
@@ -321,7 +323,8 @@ def decrypt(message, key):
     exponent = key[0]
     modulus = key[1]
     message = pow(message, exponent, modulus)
-    message = get_message_from_numbers(message)
+    print 'after decrypt, padded', message
+    message = remove_padding(message)
     return message
 
 
@@ -354,3 +357,53 @@ def get_message_from_numbers(number):
     for num in number:
         message += chr(int(num))
     return message
+
+
+def add_padding(message, modulus):
+    """
+    Add padding by PKCS1
+    :param message: The message to encrypt in plain text
+    :param modulus: The public modulus (for length)
+    :return: Int of padded plain text message
+    """
+    key_size = len(clean_hex(modulus)) * 8 / 3
+    size_in_bits_msg = len(clean_hex(get_numbers_from_message(message))) * 8 / 3
+    size_of_padding = key_size - size_in_bits_msg
+    difference = modulus - get_numbers_from_message(message)
+    if difference <= 0:
+        return False
+    padded_msg = '02'
+    ff = 'ff'
+    random_part_size = (size_of_padding / 8 - 4)
+    random_part = str(int(os.urandom(random_part_size).encode('hex'), 16))
+    random_part = re.findall('..?', random_part)
+    # [random_part[x] + random_part[x+1] for x in range(0, len(random_part), 2)]
+    pad = ''
+    for char in random_part:
+        pad += chr(int(char))
+    padded_msg += pad + ff + message  # random part size /8 because size
+    # is in bytes here
+    # padded_msg = int(padded_msg)
+    padded_msg = get_numbers_from_message(padded_msg)
+    return padded_msg
+
+# n = 14, msg = 4, padding = 10 | 02 random ff = 10 ===> 02 | 1024 key, 128 msg == 896 padding -> 02 + 880 bits
+# random + ff (896 - 2 * byte - 896 -16 = 880)
+
+
+def remove_padding(message):
+    """
+    Remove padding by PKCS1
+    :param message: Padded decrypted message
+    :return: Plaint text of the encrypted message
+    """
+    message = get_message_from_numbers(message)
+    if message[:2] != '02':
+        return 'Error: not PKCS1'
+    try:
+        for i in range(len(message)):
+            if message[i] + message[i+1] == 'ff':
+                return message[i+2:]
+    except IndexError:
+        pass
+    return 'Error: cannot find marker "ff"'
