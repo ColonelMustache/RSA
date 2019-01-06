@@ -47,7 +47,7 @@ def generate_prime(size=1024, num_of_tries=100, max_tries=10):
             return False  # This means the for loop ran the maximal amount of times so we check if the last run got a
             # prime by chance and it should be tested, if it wasn't prime the function is done and didn't get a prime
             # so it returns 'False'.
-    print 'Got Keys!'
+    print 'Got a Prime!'
     return x
 
 
@@ -154,7 +154,7 @@ def euler_totient_function(q, p):
     return (p - 1) * (q - 1)
 
 
-def generate_keys(location='', key_size=2048):
+def generate_keys(key_size=2048, location='keys\\'):
     """
     Generate RSA private and public key pairs
     :param location: Where to save the keys in PEM format
@@ -307,7 +307,7 @@ def encrypt(message, key):
     exponent = key[0]
     modulus = key[1]
     message = add_padding(message, modulus)
-    print 'padded', message
+    # print 'padded', message
     message = pow(message, exponent, modulus)
     return base64.b64encode(hex(message))
 
@@ -323,7 +323,7 @@ def decrypt(message, key):
     exponent = key[0]
     modulus = key[1]
     message = pow(message, exponent, modulus)
-    print 'after decrypt, padded', message
+    # print 'after decrypt, padded', message
     message = remove_padding(message)
     return message
 
